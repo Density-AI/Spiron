@@ -1,0 +1,31 @@
+plugins {
+  id 'application'
+  id 'java'
+}
+
+group = rootProject.group
+version = rootProject.version
+
+repositories { mavenCentral() }
+
+java {
+    toolchain {
+        toolchain { languageVersion = JavaLanguageVersion.of(rootProject.ext.vers.java as int) }
+    }
+}
+
+dependencies {
+  implementation project(':')
+  implementation "org.slf4j:slf4j-simple:${rootProject.ext.vers.slf4j}"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:${rootProject.ext.vers.junitJupiter}"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${rootProject.ext.vers.junitJupiter}"
+  testImplementation "org.junit.platform:junit-platform-launcher:${rootProject.ext.vers.junitJupiter}"
+}
+
+test {
+  useJUnitPlatform()
+}
+
+application {
+  mainClass = 'com.spiron.App'
+}

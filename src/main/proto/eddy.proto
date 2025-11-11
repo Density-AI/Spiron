@@ -1,0 +1,32 @@
+syntax = "proto3";
+package com.spiron.proto;
+option java_package = "com.spiron.proto";
+option java_outer_classname = "EddyProto";
+
+message EddyStateMsg {
+  string id = 1;
+  repeated double vector = 2;
+  double energy = 3;
+}
+
+// What we actually sign
+message CommitBody {
+  string id = 1;
+  repeated double vector = 2;
+  double energy = 3;
+}
+
+// Signature envelope
+message CommitEnvelope {
+  CommitBody body = 1;
+  bytes bls_pubkey = 2;   // compressed
+  bytes bls_signature = 3; // compressed sig
+  string sig_scheme = 10;
+}
+
+message Ack { string status = 1; }
+
+service EddyRpc {
+  rpc Broadcast (EddyStateMsg) returns (Ack);
+  rpc Commit    (CommitEnvelope) returns (Ack);
+}

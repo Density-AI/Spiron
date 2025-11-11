@@ -1,0 +1,124 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'com.gradleup.shadow' version '9.2.2'
+    id 'com.google.protobuf' version '0.9.4'
+    id 'org.owasp.dependencycheck' version '12.1.8'
+}
+
+ext.vers = [
+  java          : 25,
+  grpc          : '1.66.0',
+  protobuf      : '3.25.3',
+  dagger        : '2.51.1',
+  junitJupiter  : '6.0.1',
+  tuweni        : '2.7.2',
+  mockito       : '5.20.0',
+  assertj       : '3.27.6',
+  milagro       : '0.4.0',
+  slf4j         : '2.0.17',
+  awaitility    : '4.2.0',
+  javax         : '1.3.2',
+  micrometer    : '1.13.3'
+]
+
+group = 'com.spiron'
+version = '0.0.1'
+
+java {
+    toolchain {
+        toolchain { languageVersion = JavaLanguageVersion.of(vers.java as int) }
+    }
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    // DI
+    implementation "com.google.dagger:dagger:${vers.dagger}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${vers.dagger}"
+
+    // gRPC
+    implementation "io.grpc:grpc-netty-shaded:${vers.grpc}"
+    implementation "io.grpc:grpc-protobuf:${vers.grpc}"
+    implementation "io.grpc:grpc-stub:${vers.grpc}"
+    implementation "io.grpc:grpc-services:${vers.grpc}"
+
+    // BLS crypto
+    runtimeOnly "io.consensys.tuweni:tuweni-bytes:${vers.tuweni}"
+    implementation "io.consensys.tuweni:tuweni-crypto:${vers.tuweni}"
+    implementation "org.miracl.milagro.amcl:milagro-crypto-java:${vers.milagro}"
+
+    // Micrometer
+    implementation "io.micrometer:micrometer-core:${vers.micrometer}"
+    implementation "io.micrometer:micrometer-registry-prometheus:${vers.micrometer}"
+
+    // Logging
+    implementation "org.slf4j:slf4j-simple:${vers.slf4j}"
+    compileOnly "javax.annotation:javax.annotation-api:${vers.javax}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:${vers.junitJupiter}"
+    testImplementation "org.assertj:assertj-core:${vers.assertj}"
+    testImplementation "org.mockito:mockito-core:${vers.mockito}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${vers.mockito}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${vers.junitJupiter}"
+    testImplementation "org.awaitility:awaitility:${vers.awaitility}"
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${vers.protobuf}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${vers.grpc}" }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins { grpc {} }
+        }
+    }
+}
+
+// examples module provides runnable applications. Root project is the library artifact.
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+tasks.withType(Test).configureEach { useJUnitPlatform() }
+
+shadowJar {
+    archiveBaseName.set('spiron')
+    archiveVersion.set('')
+    mergeServiceFiles()
+}
+
+dependencyCheck {
+  failBuildOnCVSS = 7.0
+
+  data {
+    directory = "${rootProject.rootDir}/.dc-cache"
+  }
+
+  scanConfigurations = ['compileClasspath', 'runtimeClasspath']
+  skipConfigurations = ['testCompileClasspath','testRuntimeClasspath','testImplementation','testRuntimeOnly']
+
+  outputDirectory = "${buildDir}/reports/dependency-check"
+  formats = ['HTML', 'JSON']
+
+  analyzers {
+    assemblyEnabled = false
+    nodeEnabled = false
+  }
+
+}
+
+//tasks.named('check') { dependsOn tasks.named('dependencyCheckAnalyze') }
