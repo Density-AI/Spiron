@@ -17,20 +17,29 @@ public class SpironClusterTest {
   static SpironNodeHarness n1, n2;
   static EddyRpcGrpc.EddyRpcBlockingStub stub1, stub2;
 
+  private static int findFreePort() throws java.io.IOException {
+    try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
+      socket.setReuseAddress(true);
+      return socket.getLocalPort();
+    }
+  }
+
   @BeforeAll
   static void startCluster() throws Exception {
-    List<String> peers = List.of("localhost:8081", "localhost:8082");
+    int port1 = findFreePort();
+    int port2 = findFreePort();
+    List<String> peers = List.of("localhost:" + port1, "localhost:" + port2);
 
-    n1 = new SpironNodeHarness(8081, peers);
-    n2 = new SpironNodeHarness(8082, peers);
+    n1 = new SpironNodeHarness(port1, peers);
+    n2 = new SpironNodeHarness(port2, peers);
     n1.start();
     n2.start();
 
     stub1 = EddyRpcGrpc.newBlockingStub(
-      ManagedChannelBuilder.forAddress("localhost", 8081).usePlaintext().build()
+      ManagedChannelBuilder.forAddress("localhost", port1).usePlaintext().build()
     );
     stub2 = EddyRpcGrpc.newBlockingStub(
-      ManagedChannelBuilder.forAddress("localhost", 8082).usePlaintext().build()
+      ManagedChannelBuilder.forAddress("localhost", port2).usePlaintext().build()
     );
   }
 
@@ -57,10 +66,9 @@ public class SpironClusterTest {
 
     // Commit via node-2's RpcClient -> replicates to both peers
     EddyState commitState = new EddyState(
-      "dominant-order",
-      new double[] { 0.9, 0.3 },
+      "dominant-order", new double[] { 0.9, 0.3 },
       3.0
-    );
+    , null);
     n2.rpcClient().commit(commitState);
 
     // Wait until both nodes converge

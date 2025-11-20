@@ -1,0 +1,122 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.google.protobuf'
+}
+
+group = rootProject.group
+version = rootProject.version
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.vers.java as int)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // gRPC dependencies (reuse root versions)
+    api "io.grpc:grpc-netty-shaded:${rootProject.ext.vers.grpc}"
+    api "io.grpc:grpc-protobuf:${rootProject.ext.vers.grpc}"
+    api "io.grpc:grpc-stub:${rootProject.ext.vers.grpc}"
+
+    // Protocol Buffers
+    api "com.google.protobuf:protobuf-java-util:${rootProject.ext.vers.protobuf}"
+
+    // Depend on core/server modules for DI, RPC, security, and config
+    implementation project(':')
+    implementation project(':spiron-server')
+
+    // Cryptography (for BLS signatures)
+    implementation "io.consensys.tuweni:tuweni-crypto:${rootProject.ext.vers.tuweni}"
+
+    // Dependency Injection
+    implementation "com.google.dagger:dagger:${rootProject.ext.vers.dagger}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${rootProject.ext.vers.dagger}"
+
+    // Annotations used by generated gRPC stubs
+    compileOnly "javax.annotation:javax.annotation-api:${rootProject.ext.vers.javax}"
+
+    // Logging
+    implementation "org.slf4j:slf4j-simple:${rootProject.ext.vers.slf4j}"
+
+    // Testing
+    testImplementation "org.junit.jupiter:junit-jupiter:${rootProject.ext.vers.junitJupiter}"
+    testImplementation "org.mockito:mockito-core:${rootProject.ext.vers.mockito}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${rootProject.ext.vers.mockito}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${rootProject.ext.vers.junitJupiter}"
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${rootProject.ext.vers.protobuf}"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${rootProject.ext.vers.grpc}"
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                grpc {}
+            }
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'Spiron Java Client'
+                description = 'Java client library for Spiron consensus engine'
+                url = 'https://spiron.dev'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'density-ai'
+                        name = 'Density AI Team'
+                        email = 'team@density.ai'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/Density-AI/spiron.git'
+                    developerConnection = 'scm:git:ssh://github.com/Density-AI/spiron.git'
+                    url = 'https://github.com/Density-AI/spiron'
+                }
+            }
+        }
+    }
+}

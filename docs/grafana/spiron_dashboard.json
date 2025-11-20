@@ -1,8 +1,52 @@
 {
   "title": "Spiron RPC Overview",
   "panels": [
-    { "type": "graph", "title": "RPC Broadcast Rate", "targets": [ { "expr": "sum(rate(spiron_rpc_broadcast_total[5m])) by (peer)" } ] },
-    { "type": "graph", "title": "RPC Failures", "targets": [ { "expr": "sum(rate(spiron_rpc_failures_total[5m])) by (peer)" } ] },
-    { "type": "graph", "title": "Commit Latency P90", "targets": [ { "expr": "histogram_quantile(0.9, sum(rate(spiron_rpc_latency_bucket[5m])) by (le, peer))" } ] }
-  ]
-}
+    { 
+      "type": "graph", 
+      "title": "RPC Broadcast Rate", 
+      "targets": [ 
+        { "expr": "sum(rate(spiron_rpc_broadcast_total[5m])) by (peer)" } 
+      ] 
+    },
+    { 
+      "type": "graph", 
+      "title": "RPC Failures", 
+      "targets": [ 
+        { "expr": "sum(rate(spiron_rpc_failures_total[5m])) by (peer)" } 
+      ] 
+    },
+    { 
+      "type": "graph", 
+      "title": "Commit Latency P90", 
+      "targets": [ 
+        { "expr": "histogram_quantile(0.9, sum(rate(spiron_rpc_latency_bucket[5m])) by (le, peer))" } 
+      ] 
+    },
+    {
+      "type": "graph",
+      "title": "Broadcast Rejections by Type",
+      "targets": [
+        { "expr": "rate(spiron_broadcast_rejected_validation_total[5m])", "legendFormat": "Validation Failures" },
+        { "expr": "rate(spiron_broadcast_rejected_duplicate_total[5m])", "legendFormat": "Duplicates" },
+        { "expr": "rate(spiron_broadcast_rejected_ratelimit_total[5m])", "legendFormat": "Rate Limited" },
+        { "expr": "rate(spiron_broadcast_rejected_allowlist_total[5m])", "legendFormat": "Allowlist Rejected" }
+      ],
+      "description": "Crash Fault Tolerance - Broadcast rejection rates by type"
+    },
+    {
+      "type": "stat",
+      "title": "Total Broadcast Rejections",
+      "targets": [
+        { "expr": "sum(spiron_broadcast_rejected_validation_total + spiron_broadcast_rejected_duplicate_total + spiron_broadcast_rejected_ratelimit_total + spiron_broadcast_rejected_allowlist_total)" }
+      ],
+      "description": "Total number of broadcasts rejected for CFT reasons"
+    },
+    {
+      "type": "graph",
+      "title": "Broadcast Accept vs Reject Rate",
+      "targets": [
+        { "expr": "rate(spiron_rpc_broadcast_total[5m])", "legendFormat": "Accepted" },
+        { "expr": "sum(rate(spiron_broadcast_rejected_validation_total[5m]) + rate(spiron_broadcast_rejected_duplicate_total[5m]) + rate(spiron_broadcast_rejected_ratelimit_total[5m]) + rate(spiron_broadcast_rejected_allowlist_total[5m]))", "legendFormat": "Rejected (All)" }
+      ],
+      "description": "Comparison of accepted vs rejected broadcasts"
+    }

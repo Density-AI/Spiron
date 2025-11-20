@@ -29,7 +29,8 @@ public class EddyStateMachine implements StateMachine {
         Double.parseDouble(parts[2]),
       };
       var energy = Double.parseDouble(parts[3]);
-      engine.ingest(new EddyState(id, vector, energy));
+      // No lineage info in command, so parentId is null
+      engine.ingest(new EddyState(id, vector, energy, null));
       log.info("Applied command -> {}", msg);
     } catch (Exception e) {
       log.error("Failed to apply command", e);

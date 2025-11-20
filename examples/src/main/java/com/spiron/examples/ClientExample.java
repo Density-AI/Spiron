@@ -19,11 +19,13 @@ public class ClientExample {
         .workerThreads(2)
         .build()
     ) {
-      var state = new EddyState("eddy-1", new double[] { 1.0, 0.5 }, 3.14);
-      client.proposeAsync(state).thenRun(() -> System.out.println("proposed"));
-      client
-        .commitAsync(state)
-        .thenRun(() -> System.out.println("commit sent"));
+      var state = new EddyState("eddy-1", new double[] { 1.0, 0.5 }, 3.14, null);
+      client.propose(state);
+      System.out.println("proposed");
+      
+      Thread.sleep(100);
+      
+      client.commit(state);
     }
   }
 }

@@ -50,8 +50,8 @@ class EddyEngineTest {
 
   @Test
   void ingest_lowSimilarity_appliesDampingOnExisting() {
-    EddyState a = new EddyState("E", new double[] { 1.0, 0.0 }, 10.0);
-    EddyState b = new EddyState("E", new double[] { 0.0, 1.0 }, 5.0);
+    EddyState a = new EddyState("E", new double[] { 1.0, 0.0 }, 10.0, null);
+    EddyState b = new EddyState("E", new double[] { 0.0, 1.0 }, 5.0, null);
 
     engine.ingest(a);
     engine.ingest(b);
@@ -66,11 +66,11 @@ class EddyEngineTest {
   @Test
   void dominant_present_only_when_energy_meets_commitThreshold() {
     engine.ingest(
-      new EddyState("L", new double[] { 1, 0 }, commitEnergy - 0.01)
+      new EddyState("L", new double[] { 1, 0 }, commitEnergy - 0.01, null)
     );
     assertTrue(engine.dominant().isEmpty());
 
-    engine.ingest(new EddyState("H", new double[] { 1, 0 }, commitEnergy));
+    engine.ingest(new EddyState("H", new double[] { 1, 0 }, commitEnergy, null));
     var dom = engine.dominant();
     assertTrue(dom.isPresent());
     assertEquals("H", dom.get().id());
@@ -79,10 +79,9 @@ class EddyEngineTest {
   @Test
   void checkAndCommit_callsRpcCommit_and_persists() {
     EddyState s = new EddyState(
-      "C1",
-      new double[] { 0.9, 0.3 },
+      "C1", new double[] { 0.9, 0.3 },
       commitEnergy + 1.0
-    );
+    , null);
     engine.ingest(s);
 
     var committed = engine.checkAndCommit();
@@ -104,10 +103,9 @@ class EddyEngineTest {
   @Test
   void persistState_updatesInMemory_so_dominant_can_become_present_via_rpc() {
     EddyState committed = new EddyState(
-      "RPC",
-      new double[] { 0.5, 0.5 },
+      "RPC", new double[] { 0.5, 0.5 },
       commitEnergy + 0.5
-    );
+    , null);
     engine.persistState(committed);
 
     var dom = engine.dominant();
@@ -118,7 +116,7 @@ class EddyEngineTest {
 
   @Test
   void propagate_callsBroadcast_whenNetworkAttached() {
-    EddyState s = new EddyState("B1", new double[] { 0.1, 0.2 }, 1.0);
+    EddyState s = new EddyState("B1", new double[] { 0.1, 0.2 }, 1.0, null);
     engine.propagate(s);
     assertEquals(1, rpc.broadcastCalls);
     assertNotNull(rpc.lastBroadcast);
@@ -127,13 +125,13 @@ class EddyEngineTest {
 
   @Test
   void snapshot_returns_copy_and_is_immutable() {
-    engine.ingest(new EddyState("S1", new double[] { 1, 0 }, 1.0));
-    engine.ingest(new EddyState("S2", new double[] { 0, 1 }, 2.0));
+    engine.ingest(new EddyState("S1", new double[] { 1, 0 }, 1.0, null));
+    engine.ingest(new EddyState("S2", new double[] { 0, 1 }, 2.0, null));
 
     var snap = engine.snapshot();
     assertEquals(2, snap.size());
     assertThrows(UnsupportedOperationException.class, () ->
-      snap.add(new EddyState("S3", new double[] { 0.3, 0.7 }, 3.0))
+      snap.add(new EddyState("S3", new double[] { 0.3, 0.7 }, 3.0, null))
     );
   }
 

@@ -5,10 +5,27 @@ import java.io.Closeable;
 import java.util.Map;
 
 /**
- * Backward-compatible facade kept for a short transition period.
- * Delegates to the promoted {@link SpironClient} API.
+ * Backward-compatible facade for SpironClient V1 API users.
+ *
+ * <p><b>NOT related to Apache Ratis</b> - This is simply a wrapper to help users
+ * migrate from an older SpironClient API. For Apache Ratis compatibility,
+ * see {@link StateMachine} interface instead.</p>
+ *
+ * <p><b>Deprecation Notice:</b> This class will be removed in v2.0.0.
+ * Please migrate to {@link SpironClient} directly.</p>
+ *
+ * <p><b>Migration Example:</b></p>
+ * <pre>{@code
+ * // Old (deprecated)
+ * SpironClientV2 client = SpironClientV2.fromProperties(props);
+ *
+ * // New (recommended)
+ * SpironClient client = SpironClient.fromProperties(props);
+ * }</pre>
+ *
+ * @deprecated Use {@link SpironClient} directly. Scheduled for removal in v2.0.0.
  */
-@Deprecated
+@Deprecated // DEAD CODE: Scheduled for removal in v2.0.0
 public final class SpironClientV2 implements Closeable {
 
   private final SpironClient delegate;

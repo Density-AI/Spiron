@@ -7,4 +7,10 @@
  */
 
 rootProject.name = 'Spiron'
+
+// Core library (root project) and runnable/examples module
 include ':examples'
+
+// Server and client modules as part of the unified multi-project build
+include ':spiron-server'
+include ':spiron-clients:spiron-java-client'

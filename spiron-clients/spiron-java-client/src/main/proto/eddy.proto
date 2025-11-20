@@ -1,0 +1,69 @@
+syntax = "proto3";
+package com.spiron.proto;
+option java_package = "com.spiron.proto";
+option java_outer_classname = "EddyProto";
+
+message EddyStateMsg {
+  string id = 1;
+  repeated double vector = 2;
+  double energy = 3;
+}
+
+// CRDT-based vector with LWW semantics
+message CRDTVector {
+  repeated double vector = 1;
+  int64 timestamp = 2;        // LWW timestamp (millis)
+  string replica_id = 3;      // node id that created this vector
+  bytes signature = 4;        // replica signs (vector || timestamp)
+}
+
+// G-Counter CRDT for approval tracking (non-decreasing per-replica)
+message ApprovalCounter {
+  map<string, int64> per_replica = 1;  // replicaId -> approval count
+}
+
+// Full CRDT Eddy state
+message CRDTEddy {
+  string id = 1;
+  CRDTVector state = 2;       // LWW-selected vector
+  ApprovalCounter approvals = 3;
+  int64 last_updated = 4;     // local timestamp of last merge
+}
+
+// Gossip sync request (push-based)
+message SyncRequest {
+  string sender_id = 1;
+  map<string, CRDTEddy> eddies = 2;  // sender's current CRDT state
+}
+
+// Gossip sync response
+message SyncResponse {
+  map<string, CRDTEddy> eddies = 1;  // responder's current state
+}
+
+// What we actually sign
+message CommitBody {
+  string id = 1;
+  repeated double vector = 2;
+  double energy = 3;
+}
+
+// Signature envelope
+message CommitEnvelope {
+  CommitBody body = 1;
+  bytes bls_pubkey = 2;   // compressed
+  bytes bls_signature = 3; // compressed sig
+  string sig_scheme = 10;
+}
+
+message Ack { string status = 1; }
+
+service EddyRpc {
+  rpc Broadcast (EddyStateMsg) returns (Ack);
+  rpc Commit    (CommitEnvelope) returns (Ack);
+}
+
+// New CRDT-based gossip service (leaderless, eventual consistency)
+service EddyGossip {
+  rpc Sync(SyncRequest) returns (SyncResponse);
+}

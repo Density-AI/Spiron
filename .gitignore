@@ -5,3 +5,10 @@
 build
 
 .dc-cache
+
+# Runtime files
+*.pid
+*.log
+node*.log
+test-node*.log
+benchmark-*.log

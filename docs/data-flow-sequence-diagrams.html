@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiron - Complete Data Flow Sequence Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 4px solid #3498db;
+            padding-bottom: 15px;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #ecf0f1;
+            font-size: 1.8em;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+        .diagram {
+            margin: 30px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            overflow-x: auto;
+        }
+        .description {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #2196f3;
+        }
+        .description h3 {
+            margin-top: 0;
+            color: #1976d2;
+            font-size: 1.3em;
+        }
+        .flow-summary {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border-left: 5px solid #ff9800;
+        }
+        .flow-summary h3 {
+            margin-top: 0;
+            color: #f57c00;
+        }
+        .metrics-highlight {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #4caf50;
+        }
+        .metrics-highlight h4 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        .data-path {
+            display: inline-block;
+            background: #f5f5f5;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 5px;
+            border: 1px solid #ddd;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .toc h3 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            padding: 5px 0;
+        }
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Spiron - Complete Data Flow Sequence Diagrams</h1>
+        <p class="subtitle"><strong>Generated:</strong> November 19, 2025 | <strong>Coverage:</strong> All Operations with Metrics</p>
+
+        <div class="toc">
+            <h3>📑 Table of Contents</h3>
+            <ul>
+                <li><a href="#eddy-broadcast">1. Eddy Broadcast with Metrics</a></li>
+                <li><a href="#crdt-merge">2. CRDT Merge with Instrumentation</a></li>
+                <li><a href="#gossip-sync">3. Gossip Synchronization Flow</a></li>
+                <li><a href="#commit-flow">4. Commit with BLS Signatures</a></li>
+                <li><a href="#storage-selection">5. Storage Backend Selection</a></li>
+                <li><a href="#metrics-collection">6. Metrics Collection & Updates</a></li>
+                <li><a href="#cluster-startup">7. Cluster Startup Sequence</a></li>
+                <li><a href="#convergence">8. Consensus Convergence Flow</a></li>
+            </ul>
+        </div>
+
+        <h2 id="eddy-broadcast">1. Eddy Broadcast with Metrics Tracking</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Shows complete flow from client broadcast through network propagation, ingestion, energy merging, and metrics recording. Includes both vector energy merges and CRDT operations.</p>
+            <p><strong>Key Components:</strong> RpcClient, RpcServer, EddyEngine, EddyMath, EnergyMetrics, ThroughputMetrics</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant Client
+    participant RpcClient
+    participant RpcMetrics
+    participant Network
+    participant RpcServer
+    participant EddyEngine
+    participant EddyMath
+    participant EnergyMetrics
+    participant ThroughputMetrics
+    participant StorageMetrics
+    participant RaftLog
+
+    Client->>RpcClient: broadcast(eddyState)
+    RpcClient->>RpcMetrics: incBroadcast(peer)
+    RpcClient->>RpcClient: Sign with BLS
+    
+    loop For each peer
+        RpcClient->>RpcMetrics: recordInFlight(1)
+        RpcClient->>Network: gRPC Broadcast RPC
+        Network->>RpcServer: EddyStateMsg
+        
+        RpcServer->>EddyEngine: ingest(eddyState)
+        EddyEngine->>EnergyMetrics: recordEnergy(energy)
+        EddyEngine->>EnergyMetrics: incCrdtIngest()
+        EddyEngine->>ThroughputMetrics: incEddiesIngested()
+        EddyEngine->>ThroughputMetrics: recordBytesIngested(bytes)
+        
+        EddyEngine->>EddyEngine: eddies.merge(id, incoming, this::merge)
+        
+        alt Eddy exists (Map.merge triggered)
+            EddyEngine->>EddyMath: angularSimilarity(v1, v2)
+            EddyMath-->>EddyEngine: similarity score
+            
+            alt similarity > threshold
+                EddyEngine->>EnergyMetrics: recordMerge(lambda)
+                EddyEngine->>EnergyMetrics: incMerge()
+                EddyEngine->>EddyMath: siphon(e1, e2, sim, factor)
+                EddyMath-->>EddyEngine: merged energy
+                EddyEngine->>EnergyMetrics: recordEnergy(mergedEnergy)
+                Note over EddyEngine: Energy siphoning merge
+            else similarity <= threshold
+                EddyEngine->>EddyEngine: Damp energy (e * alpha)
+                EddyEngine->>EnergyMetrics: incCrdtDamping()
+                EddyEngine->>EnergyMetrics: recordEnergy(damped)
+                Note over EddyEngine: Energy damping
+            end
+        else New eddy
+            EddyEngine->>EddyEngine: Store new eddy
+            EddyEngine->>StorageMetrics: setStateEntries(size)
+        end
+        
+        EddyEngine->>EddyEngine: Check if energy >= commitEnergy
+        
+        alt Energy >= commitEnergy (Dominance achieved)
+            EddyEngine->>EnergyMetrics: recordCommit(lambda)
+            EddyEngine->>EnergyMetrics: incCrdtCommit()
+            EddyEngine->>ThroughputMetrics: incEddiesEmitted()
+            EddyEngine->>ThroughputMetrics: recordBytesEmitted(bytes)
+            
+            EddyEngine->>StorageMetrics: recordWrite(bytes)
+            EddyEngine->>StorageMetrics: Timer.record(lambda)
+            EddyEngine->>RaftLog: append("commit:id,energy")
+            RaftLog-->>EddyEngine: Written
+            
+            EddyEngine->>RpcClient: commit(dominantEddy)
+            RpcClient->>RpcMetrics: incCommit(peer)
+        end
+        
+        RpcServer-->>Network: Ack
+        Network-->>RpcClient: Ack
+        RpcClient->>RpcMetrics: recordInFlight(0)
+    end
+    
+    RpcClient-->>Client: Broadcast complete
+            </div>
+        </div>
+
+        <div class="metrics-highlight">
+            <h4>📊 Metrics Recorded in This Flow</h4>
+            <ul>
+                <li><code>spiron_rpc_broadcasts_total</code> - Per peer broadcast count</li>
+                <li><code>spiron_rpc_inflight_count</code> - Active RPC calls</li>
+                <li><code>spiron_crdt_ingests_total</code> - Eddy ingest operations</li>
+                <li><code>spiron_eddies_ingested_total</code> - Total eddies ingested</li>
+                <li><code>spiron_bytes_ingested_total</code> - Data volume ingested</li>
+                <li><code>spiron_merges_total</code> - Energy merge operations</li>
+                <li><code>spiron_merge_latency</code> - Merge operation timing (P50, P90, P99)</li>
+                <li><code>spiron_crdt_dampings_total</code> - Energy damping events</li>
+                <li><code>spiron_energy_levels</code> - Energy distribution histogram</li>
+                <li><code>spiron_crdt_commits_total</code> - Commit operations</li>
+                <li><code>spiron_commit_latency</code> - Time to commitment</li>
+                <li><code>spiron_storage_write_ops_total</code> - Storage write operations</li>
+                <li><code>spiron_storage_bytes_written_total</code> - Bytes persisted</li>
+            </ul>
+        </div>
+
+        <h2 id="crdt-merge">2. CRDT Merge with Full Instrumentation</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Detailed view of CRDT merge operations showing Last-Writer-Wins (LWW) vector merge and G-Counter approval merging with metrics tracking at every step.</p>
+            <p><strong>Key Components:</strong> CRDTMergeEngine, ApprovalCounter, EnergyMetrics</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant Caller
+    participant CRDTMergeEngine
+    participant EnergyMetrics
+    participant LWW as LWW Vector Merge
+    participant GCounter as G-Counter Merge
+    participant ApprovalCounter
+
+    Caller->>CRDTMergeEngine: merge(eddy1, eddy2)
+    
+    alt eddy1 == null
+        CRDTMergeEngine-->>Caller: return eddy2
+    else eddy2 == null
+        CRDTMergeEngine-->>Caller: return eddy1
+    else eddy1.equals(eddy2)
+        CRDTMergeEngine-->>Caller: return eddy1 (idempotent)
+    end
+    
+    CRDTMergeEngine->>EnergyMetrics: incMerge()
+    Note over EnergyMetrics: spiron_merges_total++
+    
+    CRDTMergeEngine->>LWW: mergeLWWVector(vec1, vec2)
+    
+    alt timestamp1 > timestamp2
+        LWW-->>CRDTMergeEngine: return vec1
+    else timestamp2 > timestamp1
+        LWW-->>CRDTMergeEngine: return vec2
+    else timestamps equal
+        LWW->>LWW: Compare replicaId lexicographically
+        alt replicaId1 >= replicaId2
+            LWW-->>CRDTMergeEngine: return vec1
+        else
+            LWW-->>CRDTMergeEngine: return vec2
+        end
+    end
+    
+    CRDTMergeEngine->>GCounter: mergeApprovals(appr1, appr2)
+    
+    loop For each replica in appr1
+        GCounter->>GCounter: Add to result map
+    end
+    
+    loop For each replica in appr2
+        GCounter->>GCounter: max(appr1[replica], appr2[replica])
+        Note over GCounter: Element-wise max merge
+    end
+    
+    GCounter-->>CRDTMergeEngine: merged ApprovalCounter
+    
+    CRDTMergeEngine->>CRDTMergeEngine: Build merged CRDTEddy
+    Note over CRDTMergeEngine: id from eddy1, merged vector (LWW), merged approvals (G-Counter)
+    
+    CRDTMergeEngine-->>Caller: return mergedEddy
+    
+    Note over Caller,ApprovalCounter: CRDT properties guaranteed: Commutative, Associative, Idempotent, Convergent
+            </div>
+        </div>
+
+        <h2 id="gossip-sync">3. Gossip Synchronization with Metrics</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Pull-based gossip protocol for CRDT state synchronization between cluster nodes, showing how metrics track gossip operations.</p>
+            <p><strong>Key Components:</strong> GossipScheduler, EddyGossipService, CRDTStore, CRDTMergeEngine</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant NodeA
+    participant GossipScheduler
+    participant EnergyMetrics
+    participant Network
+    participant EddyGossipService
+    participant CRDTStore
+    participant CRDTMergeEngine
+    participant RocksDB
+
+    Note over GossipScheduler: Every 5 seconds (configurable)
+    
+    GossipScheduler->>GossipScheduler: gossipRound()
+    GossipScheduler->>GossipScheduler: Select random peer
+    
+    GossipScheduler->>CRDTStore: getAll()
+    CRDTStore->>RocksDB: Iterate all keys
+    RocksDB-->>CRDTStore: All eddies (JSON)
+    CRDTStore-->>GossipScheduler: Map of eddies
+    
+    GossipScheduler->>Network: gRPC Sync(SyncRequest)
+    Network->>EddyGossipService: SyncRequest (senderId, eddies)
+    
+    loop For each remote eddy
+        EddyGossipService->>CRDTStore: get(eddyId)
+        CRDTStore->>RocksDB: Get by key
+        RocksDB-->>CRDTStore: JSON or null
+        
+        alt Local state exists
+            CRDTStore-->>EddyGossipService: localEddy (JSON)
+            EddyGossipService->>EddyGossipService: Deserialize local eddy
+            
+            EddyGossipService->>CRDTMergeEngine: merge(localEddy, remoteEddy)
+            CRDTMergeEngine->>EnergyMetrics: incMerge()
+            Note over EnergyMetrics: CRDT merge tracked
+            CRDTMergeEngine-->>EddyGossipService: mergedEddy
+            
+        else No local state
+            EddyGossipService->>EddyGossipService: Use remoteEddy as-is
+            Note over EddyGossipService: New eddy from peer
+        end
+        
+        EddyGossipService->>EddyGossipService: Serialize merged eddy
+        EddyGossipService->>CRDTStore: put(eddyId, JSON)
+        CRDTStore->>RocksDB: Put key-value
+        RocksDB-->>CRDTStore: Written
+    end
+    
+    EddyGossipService->>CRDTStore: getAll()
+    CRDTStore-->>EddyGossipService: All local eddies
+    
+    EddyGossipService-->>Network: SyncResponse (eddies)
+    Network-->>GossipScheduler: SyncResponse
+    
+    GossipScheduler->>GossipScheduler: mergeRemoteEddies(response)
+    
+    loop For each eddy in response
+        GossipScheduler->>CRDTStore: get(eddyId)
+        
+        alt Local exists
+            GossipScheduler->>EnergyMetrics: recordMerge(lambda)
+            Note over EnergyMetrics: Track merge latency
+            GossipScheduler->>CRDTMergeEngine: merge(local, remote)
+            CRDTMergeEngine->>EnergyMetrics: incMerge()
+            CRDTMergeEngine-->>GossipScheduler: merged
+        else New from remote
+            GossipScheduler->>EnergyMetrics: incCrdtIngest()
+            Note over EnergyMetrics: New eddy ingested
+            GossipScheduler->>GossipScheduler: Use remote as-is
+        end
+        
+        GossipScheduler->>CRDTStore: put(eddyId, merged)
+    end
+    
+    Note over NodeA,RocksDB: Gossip sync complete. Both nodes now have merged state
+            </div>
+        </div>
+
+        <h2 id="commit-flow">4. Cryptographically Signed Commit Flow</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Shows Byzantine fault-tolerant commit using BLS12-381 signatures for authenticity verification.</p>
+            <p><strong>Key Components:</strong> EddyEngine, RpcClient, BlsSigner, RpcServer</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant Engine
+    participant RpcClient
+    participant BlsSigner
+    participant RpcMetrics
+    participant Network
+    participant RpcServer
+    participant RemoteEngine
+    participant RaftLog
+    participant SnapshotStore
+
+    Engine->>Engine: checkAndCommit()
+    Engine->>Engine: dominant() finds eddy with energy >= threshold
+    
+    Engine->>RpcClient: commit(dominantEddy)
+    RpcClient->>RpcMetrics: incCommit(peer)
+    
+    RpcClient->>RpcClient: Serialize eddy to bytes
+    RpcClient->>BlsSigner: sign(eddyBytes)
+    BlsSigner->>BlsSigner: Generate BLS12-381 signature
+    Note over BlsSigner: Uses Tuweni library SecretKey.sign
+    BlsSigner-->>RpcClient: signature (48 bytes)
+    
+    RpcClient->>BlsSigner: publicKey()
+    BlsSigner-->>RpcClient: publicKey (96 bytes compressed)
+    
+    RpcClient->>RpcClient: Build CommitEnvelope
+    Note over RpcClient: body, blsSignature, blsPubkey, sigScheme
+    
+    loop For each peer in cluster
+        RpcClient->>RpcMetrics: recordInFlight(1)
+        RpcClient->>Network: gRPC Commit(CommitEnvelope)
+        Network->>RpcServer: CommitEnvelope
+        
+        RpcServer->>RpcServer: Extract signature, publicKey, message
+        
+        RpcServer->>BlsSigner: verify(message, signature, publicKey)
+        BlsSigner->>BlsSigner: PublicKey.verify(signature, message)
+        
+        alt Signature valid
+            BlsSigner-->>RpcServer: true
+            Note over RpcServer: Signature authentic
+            
+            RpcServer->>RemoteEngine: persistState(eddyState)
+            RemoteEngine->>RaftLog: append("commit:id=...,energy=...")
+            RaftLog-->>RemoteEngine: Written to log
+            
+            RemoteEngine->>SnapshotStore: save(eddyState)
+            SnapshotStore->>SnapshotStore: Serialize and write to disk
+            SnapshotStore-->>RemoteEngine: Snapshot saved
+            
+            RemoteEngine->>RemoteEngine: Update in-memory state
+            
+            RpcServer-->>Network: CommitResponse{status: COMMITTED}
+            
+        else Signature invalid
+            BlsSigner-->>RpcServer: false
+            Note over RpcServer: Reject forged message
+            RpcServer->>RpcMetrics: incFailure(peer)
+            RpcServer-->>Network: CommitResponse{status: INVALID_SIGNATURE}
+        end
+        
+        Network-->>RpcClient: Response
+        RpcClient->>RpcMetrics: recordInFlight(0)
+    end
+    
+    RpcClient-->>Engine: All commits broadcast
+    
+    Note over Engine,SnapshotStore: Byzantine fault tolerance via cryptographic signatures
+            </div>
+        </div>
+
+        <h2 id="storage-selection">5. Storage Backend Selection Flow</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Shows dependency injection and storage backend selection based on configuration (solo vs cluster mode).</p>
+            <p><strong>Key Components:</strong> SpironConfig, SpironModule, RocksDbCRDTStore, EtcdCRDTStore</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant App
+    participant SpironConfig
+    participant SpironModule
+    participant DaggerComponent
+    participant CRDTStore
+    participant RocksDB
+    participant etcd
+
+    App->>SpironConfig: load()
+    SpironConfig->>SpironConfig: Read application.properties
+    Note over SpironConfig: storage.mode, data.dir, profile
+    
+    SpironConfig->>SpironConfig: applyProfile(LOW_LATENCY)
+    Note over SpironConfig: Sets alpha, siphonFactor, angularThreshold, commitEnergy
+    
+    SpironConfig-->>App: Config object
+    
+    App->>DaggerComponent: Create with SpironModule
+    DaggerComponent->>SpironModule: provideCRDTStore(config)
+    
+    SpironModule->>SpironConfig: storageMode()
+    SpironConfig-->>SpironModule: "solo" or "cluster"
+    
+    alt storageMode = "solo"
+        SpironModule->>RocksDB: new RocksDbCRDTStore(dataDir)
+        RocksDB->>RocksDB: RocksDB.loadLibrary()
+        Note over RocksDB: Native library loaded
+        
+        RocksDB->>RocksDB: Options options = new Options()
+        Note over RocksDB: setCreateIfMissing, setCompressionType(LZ4), setMaxBackgroundJobs
+        
+        RocksDB->>RocksDB: RocksDB.open(options, path)
+        RocksDB-->>SpironModule: RocksDbCRDTStore instance
+        
+        Note over RocksDB: Solo mode - high throughput, local disk persistence
+        
+    else storageMode = "cluster"
+        SpironModule->>etcd: new EtcdCRDTStore(endpoints)
+        etcd->>etcd: Client client = Client.builder()
+        Note over etcd: endpoints(uri1, uri2, uri3).build()
+        
+        etcd->>etcd: KV kvClient = client.getKVClient()
+        etcd-->>SpironModule: EtcdCRDTStore instance
+        
+        Note over etcd: Cluster mode - distributed consistency, Raft consensus
+    end
+    
+    SpironModule-->>DaggerComponent: CRDTStore
+    
+    DaggerComponent->>SpironModule: provideLog(config)
+    SpironModule->>SpironModule: new SpironRaftLog(dataDir)
+    SpironModule-->>DaggerComponent: SpironRaftLog
+    
+    DaggerComponent->>SpironModule: provideSnapshots(config)
+    SpironModule->>SpironModule: new SpironSnapshotStore(dataDir)
+    SpironModule-->>DaggerComponent: SpironSnapshotStore
+    
+    DaggerComponent-->>App: Fully configured component
+            </div>
+        </div>
+
+        <h2 id="metrics-collection">6. Metrics Collection & Background Updates</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Shows how metrics are collected in real-time and periodically updated via MetricsUpdater background service.</p>
+            <p><strong>Key Components:</strong> MetricsUpdater, StorageMetrics, ThroughputMetrics, MetricsRegistry, Prometheus</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant RpcServer
+    participant MetricsUpdater
+    participant StorageMetrics
+    participant ThroughputMetrics
+    participant RocksDbStore
+    participant MetricsRegistry
+    participant Prometheus
+
+    RpcServer->>MetricsUpdater: start()
+    MetricsUpdater->>MetricsUpdater: ScheduledExecutorService.scheduleAtFixedRate
+    Note over MetricsUpdater: this::updateMetrics, 0, 5, SECONDS
+    
+    Note over MetricsUpdater: Background task runs every 5 seconds
+    
+    loop Every 5 seconds
+        MetricsUpdater->>MetricsUpdater: updateMetrics()
+        
+        MetricsUpdater->>RocksDbStore: getDiskUsageBytes()
+        RocksDbStore->>RocksDbStore: Files.walk and sum file lengths
+        RocksDbStore-->>MetricsUpdater: totalBytes
+        
+        MetricsUpdater->>StorageMetrics: setDiskUsage(totalBytes)
+        StorageMetrics->>MetricsRegistry: Gauge.set(totalBytes)
+        Note over StorageMetrics: spiron_storage_disk_usage_bytes
+        
+        MetricsUpdater->>ThroughputMetrics: getCurrentBytesIngested()
+        ThroughputMetrics-->>MetricsUpdater: currentBytes
+        
+        MetricsUpdater->>MetricsUpdater: Calculate bytesPerSec
+        Note over MetricsUpdater: (current - last) / 5.0
+        
+        MetricsUpdater->>ThroughputMetrics: setBytesIngestedPerSec(bytesPerSec)
+        ThroughputMetrics->>MetricsRegistry: Gauge.set(bytesPerSec)
+        Note over ThroughputMetrics: spiron_bytes_ingested_per_sec
+        
+        MetricsUpdater->>ThroughputMetrics: setBytesEmittedPerSec(...)
+        Note over ThroughputMetrics: spiron_bytes_emitted_per_sec
+        
+        MetricsUpdater->>ThroughputMetrics: setEddiesIngestedPerSec(...)
+        Note over ThroughputMetrics: spiron_eddies_ingested_per_sec
+    end
+    
+    loop Prometheus scrape (every 15s default)
+        Prometheus->>MetricsRegistry: HTTP GET /metrics
+        MetricsRegistry->>MetricsRegistry: Collect all metrics
+        Note over MetricsRegistry: EnergyMetrics, RpcMetrics, ThroughputMetrics, StorageMetrics, ConvergenceMetrics
+        
+        MetricsRegistry->>MetricsRegistry: Format as Prometheus text
+        Note over MetricsRegistry: All 53+ metrics in exposition format
+        
+        MetricsRegistry-->>Prometheus: Prometheus format (53+ metrics)
+    end
+    
+    Note over Prometheus: Metrics available for Grafana, AlertManager, and monitoring
+            </div>
+        </div>
+
+        <div class="metrics-highlight">
+            <h4>📊 Complete Metrics Catalog (53+ metrics)</h4>
+            <ul>
+                <li><strong>CRDT Operations (7):</strong> ingests, commits, dampings, merges, merge_latency, energy_levels, commit_latency</li>
+                <li><strong>RPC Operations (7):</strong> broadcasts, commits, failures, inflight_count, inflight_sum, inflight_max, latency</li>
+                <li><strong>Throughput (7):</strong> eddies_ingested, eddies_emitted, bytes_ingested, bytes_emitted, bytes_per_sec (in/out), eddies_per_sec</li>
+                <li><strong>Storage (8):</strong> bytes_written, bytes_read, write_ops, read_ops, disk_usage, state_entries, write_latency, read_latency</li>
+                <li><strong>Convergence (3):</strong> rounds, time_ms, cluster_agreement</li>
+            </ul>
+        </div>
+
+        <h2 id="cluster-startup">7. Complete Cluster Startup Sequence</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Shows the complete initialization sequence when starting a Spiron cluster node.</p>
+            <p><strong>Key Components:</strong> All major components</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant User
+    participant App
+    participant Config
+    participant DI as Dagger DI
+    participant MetricsReg as MetricsRegistry
+    participant Storage
+    participant Engine
+    participant RpcServer
+    participant RpcClient
+    participant MetricsUpdater
+
+    User->>App: java -jar spiron.jar
+    Note over User,App: Args: node-id=node-1, port=8080, mode=solo, profile=LOW_LATENCY
+    
+    App->>Config: load()
+    Config->>Config: Parse properties and CLI args
+    Config->>Config: applyProfile(LOW_LATENCY)
+    Config-->>App: SpironConfig
+    
+    App->>DI: DaggerSpironComponent.builder()
+    Note over DI: .spironModule(new SpironModule()).build()
+    
+    DI->>MetricsReg: provideMetricsRegistry(config)
+    MetricsReg->>MetricsReg: Start Prometheus HTTP server
+    Note over MetricsReg: http://localhost:9090/metrics
+    MetricsReg-->>DI: MetricsRegistry
+    
+    DI->>DI: provideEnergyMetrics(registry)
+    DI->>DI: Initialize static metrics
+    Note over DI: CRDTMergeEngine.setMetrics, ApprovalCounter.setMetrics
+    
+    DI->>Storage: provideCRDTStore(config)
+    Storage->>Storage: Open RocksDB/etcd based on config
+    Storage-->>DI: CRDTStore
+    
+    DI->>Storage: provideLog(config)
+    Storage->>Storage: Open SpironRaftLog
+    Storage-->>DI: SpironRaftLog
+    
+    DI->>Storage: provideSnapshots(config)
+    Storage->>Storage: Create SpironSnapshotStore
+    Storage-->>DI: SpironSnapshotStore
+    
+    DI->>RpcClient: provideRpcClient(config, signer, metrics)
+    RpcClient->>RpcClient: Create gRPC stubs for each peer
+    RpcClient-->>DI: RpcClient
+    
+    DI->>Engine: provideEngine(config, log, snapshots, client, metrics)
+    Engine->>Engine: Initialize with alpha, siphon, threshold
+    Engine->>Engine: attachStorage(log, snapshots)
+    Engine->>Engine: attachNetwork(client)
+    Engine->>Engine: attachMetrics(energy, throughput, storage)
+    Engine-->>DI: EddyEngine
+    
+    DI->>MetricsUpdater: provideMetricsUpdater(storage, throughput, store)
+    MetricsUpdater-->>DI: MetricsUpdater
+    
+    DI->>RpcServer: provideRpcServer(config, engine, store, codec, metrics, updater)
+    RpcServer->>RpcServer: ServerBuilder.forPort(8080)
+    Note over RpcServer: Add EddyRpcService and EddyGossipService
+    RpcServer-->>DI: RpcServer
+    
+    DI-->>App: SpironComponent (fully wired)
+    
+    App->>RpcServer: start()
+    RpcServer->>MetricsUpdater: start()
+    MetricsUpdater->>MetricsUpdater: Schedule background task (5s interval)
+    RpcServer->>RpcServer: server.start()
+    Note over RpcServer: Listening on port 8080
+    
+    App->>App: Runtime.addShutdownHook()
+    
+    Note over User,MetricsUpdater: Node fully initialized and running
+            </div>
+        </div>
+
+        <h2 id="convergence">8. Consensus Convergence Flow</h2>
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>Shows how multiple nodes converge to consensus through gossip and energy-based dominance.</p>
+            <p><strong>Key Components:</strong> Multiple nodes, GossipScheduler, EddyEngine, Metrics</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant Client
+    participant Node1
+    participant Node2
+    participant Node3
+    participant Metrics
+
+    Note over Node1,Node3: Initial state: 3 nodes, no consensus
+    
+    Client->>Node1: broadcast(eddy1)
+    Node1->>Node1: ingest(eddy1) energy=1.8
+    Node1->>Metrics: incCrdtIngest()
+    
+    Client->>Node2: broadcast(eddy1)
+    Node2->>Node2: ingest(eddy1) energy=1.8
+    
+    Note over Node1,Node3: Round 1: Gossip begins
+    
+    Node1->>Node2: Gossip sync
+    Node2->>Node2: merge(eddy1, eddy1)
+    Node2->>Metrics: incMerge()
+    Note over Node2: Identical eddies - energy unchanged
+    
+    Node2->>Node3: Gossip sync
+    Node3->>Node3: ingest(eddy1) energy=1.8
+    Node3->>Metrics: incCrdtIngest()
+    
+    Note over Node1,Node3: All nodes have eddy1
+    
+    Client->>Node1: broadcast(eddy2) [similar to eddy1]
+    Node1->>Node1: ingest(eddy2) similarity=0.95 siphon energy
+    Node1->>Metrics: incMerge()
+    Node1->>Node1: Merged energy=2.3
+    Note over Node1: energy >= commitEnergy (2.0)
+    
+    Node1->>Metrics: incCrdtCommit()
+    Node1->>Node1: Dominant eddy found!
+    
+    Node1->>Node2: commit(dominantEddy)
+    Node1->>Node3: commit(dominantEddy)
+    
+    Node2->>Node2: persistState(dominant)
+    Node2->>Metrics: incCrdtCommit()
+    
+    Node3->>Node3: persistState(dominant)
+    Node3->>Metrics: incCrdtCommit()
+    
+    Note over Node1,Node3: Consensus achieved - all nodes committed same eddy
+    
+    Metrics->>Metrics: Record convergence metrics
+    Note over Metrics: rounds=2, time=85ms, agreement=1.0
+            </div>
+        </div>
+
+        <div class="flow-summary">
+            <h3>🔄 Data Flow Summary</h3>
+            <p><strong>Primary Data Paths:</strong></p>
+            <div>
+                <span class="data-path">Client → RpcClient → Network → RpcServer → EddyEngine</span>
+                <span class="data-path">EddyEngine → Storage (Raft Log + Snapshots)</span>
+                <span class="data-path">Node A ⇄ Gossip ⇄ Node B (CRDT Merge)</span>
+                <span class="data-path">Operations → Metrics → Registry → Prometheus</span>
+            </div>
+            
+            <p style="margin-top: 20px;"><strong>Key Characteristics:</strong></p>
+            <ul>
+                <li><strong>Asynchronous:</strong> Broadcasts are non-blocking, gossip runs on schedule</li>
+                <li><strong>Eventually Consistent:</strong> CRDT merges guarantee convergence</li>
+                <li><strong>Observable:</strong> Every operation tracked with Prometheus metrics</li>
+                <li><strong>Byzantine Tolerant:</strong> BLS signatures prevent forgery</li>
+                <li><strong>Performance Tunable:</strong> Profiles adjust convergence speed vs. quorum size</li>
+                <li><strong>Storage Flexible:</strong> Solo (RocksDB) or Cluster (etcd) modes</li>
+            </ul>
+        </div>
+
+        <div class="note" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border-left: 5px solid #9c27b0;">
+            <h4 style="color: #6a1b9a;">🎯 Architecture Highlights</h4>
+            <ul>
+                <li><strong>Complete Observability:</strong> 53+ metrics covering every operation</li>
+                <li><strong>CRDT Instrumentation:</strong> Metrics now tracked at source in CRDTMergeEngine, ApprovalCounter, GossipScheduler</li>
+                <li><strong>Real-time Monitoring:</strong> MetricsUpdater background service updates gauges every 5 seconds</li>
+                <li><strong>Performance Profiling:</strong> 4 pre-tuned profiles (LOW_LATENCY, MIN_QUORUM, MAX_QUORUM, BALANCED)</li>
+                <li><strong>Production Ready:</strong> Full metrics, error handling, graceful shutdown, configurable backends</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            sequence: {
+                actorMargin: 70,
+                width: 180,
+                height: 50,
+                boxMargin: 10,
+                messageMargin: 45,
+                mirrorActors: true,
+                useMaxWidth: false
+            },
+            themeVariables: {
+                primaryColor: '#3498db',
+                primaryTextColor: '#2c3e50',
+                primaryBorderColor: '#2980b9',
+                lineColor: '#34495e',
+                secondaryColor: '#95a5a6',
+                tertiaryColor: '#ecf0f1',
+                noteBkgColor: '#fff3cd',
+                noteTextColor: '#856404',
+                noteBorderColor: '#ffc107',
+                actorBkg: '#e3f2fd',
+                actorBorder: '#2196f3',
+                actorTextColor: '#1976d2',
+                fontSize: '14px'
+            }
+        });
+    </script>
+</body>
+</html>

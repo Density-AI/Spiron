@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'jacoco'
     id 'com.gradleup.shadow' version '9.2.2'
     id 'com.google.protobuf' version '0.9.4'
     id 'org.owasp.dependencycheck' version '12.1.8'
@@ -19,7 +20,10 @@ ext.vers = [
   slf4j         : '2.0.17',
   awaitility    : '4.2.0',
   javax         : '1.3.2',
-  micrometer    : '1.13.3'
+  micrometer    : '1.13.3',
+  rocksdb       : '9.0.0',
+  jetcd         : '0.7.7',
+  gson          : '2.10.1'
 ]
 
 group = 'com.spiron'
@@ -43,6 +47,7 @@ dependencies {
     implementation "io.grpc:grpc-protobuf:${vers.grpc}"
     implementation "io.grpc:grpc-stub:${vers.grpc}"
     implementation "io.grpc:grpc-services:${vers.grpc}"
+    implementation "com.google.protobuf:protobuf-java-util:${vers.protobuf}"
 
     // BLS crypto
     runtimeOnly "io.consensys.tuweni:tuweni-bytes:${vers.tuweni}"
@@ -52,6 +57,13 @@ dependencies {
     // Micrometer
     implementation "io.micrometer:micrometer-core:${vers.micrometer}"
     implementation "io.micrometer:micrometer-registry-prometheus:${vers.micrometer}"
+
+    // Storage backends (CRDT)
+    implementation "org.rocksdb:rocksdbjni:${vers.rocksdb}"
+    implementation "io.etcd:jetcd-core:${vers.jetcd}"
+
+    // Serialization (JSON)
+    implementation "com.google.code.gson:gson:${vers.gson}"
 
     // Logging
     implementation "org.slf4j:slf4j-simple:${vers.slf4j}"
@@ -93,12 +105,66 @@ publishing {
     }
 }
 
-tasks.withType(Test).configureEach { useJUnitPlatform() }
+tasks.withType(Test).configureEach { 
+  useJUnitPlatform()
+  // Note: jacocoTestReport disabled until JaCoCo Java 25 support is complete
+  // Run manually with: ./gradlew test -x jacocoTestReport
+  
+  // Exclude Java system classes from JaCoCo instrumentation (Java 25 compatibility)
+  jacoco {
+    excludes = ['sun.*', 'java.*', 'javax.*', 'jdk.*']
+  }
+}
+
+jacoco {
+  toolVersion = "0.8.12"  // Updated for Java 25 support
+}
+
+jacocoTestReport {
+  dependsOn test
+  reports {
+    xml.required = true
+    html.required = true
+    csv.required = false
+  }
+  afterEvaluate {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+      fileTree(dir: it, exclude: [
+        '**/proto/**',
+        '**/di/**',
+        '**/App.class'
+      ])
+    }))
+  }
+}
+
+jacocoTestCoverageVerification {
+  enabled = false  // Disabled until JaCoCo fully supports Java 25
+  violationRules {
+    rule {
+      limit {
+        minimum = 0.70
+      }
+    }
+  }
+}
+
+// Commented out until JaCoCo Java 25 support is complete
+// check.dependsOn jacocoTestCoverageVerification
 
 shadowJar {
     archiveBaseName.set('spiron')
     archiveVersion.set('')
-    mergeServiceFiles()
+    // Use explicit transformer to merge service files
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer)
+    manifest {
+        attributes 'Main-Class': 'com.spiron.App'
+    }
+    // Include examples module classes - this requires examples to be built first
+    dependsOn(':examples:classes')
+    from {
+        project(':examples').sourceSets.main.output
+    }
 }
 
 dependencyCheck {

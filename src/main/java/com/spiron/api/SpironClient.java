@@ -15,70 +15,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * High-level Spiron client API (primary).
  *
- * Replaces the older `SpironClient` (legacy wrapper available as SpironClientLegacy).
+ * All operations are fully synchronous - no fire-and-forget async patterns.
  */
 public class SpironClient implements Closeable {
 
   private static final Logger log = LoggerFactory.getLogger(SpironClient.class);
 
   private final RpcClient rpcClient;
-  private final ExecutorService executor;
   private final Map<String, String> properties;
   private volatile boolean closed = false;
 
   private SpironClient(
     RpcClient rpcClient,
-    ExecutorService executor,
     Map<String, String> properties
   ) {
     this.rpcClient = Objects.requireNonNull(rpcClient);
-    this.executor = Objects.requireNonNull(executor);
     this.properties = properties == null ? Map.of() : Map.copyOf(properties);
   }
 
-  public CompletableFuture<Void> proposeAsync(EddyState state) {
+  /**
+   * Propose an eddy state to the cluster (synchronous broadcast).
+   * Blocks until broadcast completes to all peers.
+   */
+  public void propose(EddyState state) {
     ensureOpen();
-    CompletableFuture<Void> fut = new CompletableFuture<>();
-    executor.submit(() -> {
-      try {
-        rpcClient.broadcast(state);
-        fut.complete(null);
-      } catch (Throwable t) {
-        fut.completeExceptionally(t);
-      }
-    });
-    return fut;
+    rpcClient.broadcast(state);
   }
 
-  public void propose(EddyState state) throws Exception {
-    proposeAsync(state).get();
-  }
-
-  public CompletableFuture<Void> commitAsync(EddyState state) {
+  /**
+   * Commit an eddy state to the cluster (synchronous commit).
+   * Blocks until commit completes to all peers.
+   */
+  public void commit(EddyState state) {
     ensureOpen();
-    CompletableFuture<Void> fut = new CompletableFuture<>();
-    executor.submit(() -> {
-      try {
-        rpcClient.commit(state);
-        fut.complete(null);
-      } catch (Throwable t) {
-        fut.completeExceptionally(t);
-      }
-    });
-    return fut;
-  }
-
-  public void commit(EddyState state) throws Exception {
-    commitAsync(state).get();
+    rpcClient.commit(state);
   }
 
   private void ensureOpen() {
@@ -93,7 +69,6 @@ public class SpironClient implements Closeable {
     } catch (Throwable t) {
       log.debug("Error shutting down rpc client", t);
     }
-    executor.shutdownNow();
   }
 
   /** Builder API */
@@ -146,9 +121,8 @@ public class SpironClient implements Closeable {
 
       RpcClient rpc = signer == null
         ? new RpcClient(finalPeers)
-        : new RpcClient(finalPeers, signer, finalWorkerThreads, null);
-      ExecutorService ex = Executors.newFixedThreadPool(finalWorkerThreads);
-      return new SpironClient(rpc, ex, properties);
+        : new RpcClient(finalPeers, signer, finalWorkerThreads, null, null);
+      return new SpironClient(rpc, properties);
     }
   }
 
@@ -180,10 +154,11 @@ public class SpironClient implements Closeable {
   /** Start an embedded server using the client's overrides. Returns a handle to stop it. */
   public EmbeddedServer startEmbeddedServer() throws Exception {
     SpironConfig cfg = SpironConfig.loadWithOverrides(this.properties);
-    byte[] seed = cfg.blsSeed() == null || cfg.blsSeed().isEmpty()
-      ? cfg.nodeId().getBytes()
-      : cfg.blsSeed().getBytes();
-    BlsSigner signer = new BlsSigner(seed);
+    
+    // Use keystore-based BLS signer for persistence
+    Path keystoreDir = BlsSigner.getKeystoreDir(cfg.dataDir());
+    BlsSigner signer = BlsSigner.fromKeystore(keystoreDir, cfg.nodeId());
+    
     SpironComponent component = DaggerSpironComponent.builder()
       .config(cfg)
       .blsSigner(signer)

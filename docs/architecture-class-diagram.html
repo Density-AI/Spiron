@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiron - Complete Architecture Class Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 4px solid #3498db;
+            padding-bottom: 15px;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #ecf0f1;
+            font-size: 1.8em;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+        .diagram {
+            margin: 30px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .legend {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border-left: 5px solid #2196f3;
+        }
+        .legend h3 {
+            margin-top: 0;
+            color: #1976d2;
+            font-size: 1.4em;
+        }
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .legend-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #2196f3;
+        }
+        .legend-item strong {
+            color: #1976d2;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .metrics-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        .note {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #ff9800;
+            margin: 20px 0;
+        }
+        .note h4 {
+            margin-top: 0;
+            color: #f57c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌀 Spiron Consensus Engine - Complete Architecture</h1>
+        <p class="subtitle"><strong>Generated:</strong> November 19, 2025 | <strong>Version:</strong> Production-Ready with Full Metrics</p>
+
+        <div class="legend">
+            <h3>📦 Architecture Components</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <strong>Core Engine</strong>
+                    Eddy consensus, energy merging, dominance detection
+                </div>
+                <div class="legend-item">
+                    <strong>CRDT Layer</strong>
+                    Conflict-free replicated data types, merge engine, gossip
+                </div>
+                <div class="legend-item">
+                    <strong>Storage Backends</strong>
+                    RocksDB (solo), etcd (cluster), Raft log, snapshots
+                </div>
+                <div class="legend-item">
+                    <strong>Network Layer</strong>
+                    gRPC client/server, gossip service, peer communication
+                </div>
+                <div class="legend-item">
+                    <strong>Metrics System</strong>
+                    Prometheus integration, CRDT/RPC/Energy/Storage/Throughput metrics
+                </div>
+                <div class="legend-item">
+                    <strong>Security</strong>
+                    BLS12-381 signatures, cryptographic signing/verification
+                </div>
+                <div class="legend-item">
+                    <strong>Configuration</strong>
+                    Performance profiles, tunable parameters, DI with Dagger
+                </div>
+                <div class="legend-item">
+                    <strong>Serialization</strong>
+                    Protobuf (network), JSON (CRDT), binary (storage)
+                </div>
+            </div>
+        </div>
+
+        <h2>Complete System Architecture</h2>
+        <div class="diagram">
+            <div class="mermaid">
+classDiagram
+    class EddyEngine
+    class EddyState
+    class EddyMath
+    class CRDTMergeEngine
+    class ApprovalCounter
+    class GossipScheduler
+    class CRDTStore
+    class RocksDbCRDTStore
+    class EtcdCRDTStore
+    class SpironRaftLog
+    class SpironSnapshotStore
+    class RpcServer
+    class RpcClient
+    class EddyGossipService
+    class BlsSigner
+    class SpironConfig
+    class MetricsRegistry
+    class EnergyMetrics
+    class RpcMetrics
+    class ThroughputMetrics
+    class StorageMetrics
+
+    EddyEngine --> EddyState
+    EddyEngine --> SpironRaftLog
+    EddyEngine --> SpironSnapshotStore
+    EddyEngine --> RpcClient
+    EddyEngine --> EddyMath
+    EddyEngine --> EnergyMetrics
+    EddyEngine --> ThroughputMetrics
+    EddyEngine --> StorageMetrics
+
+    CRDTMergeEngine --> EnergyMetrics
+    ApprovalCounter --> EnergyMetrics
+    GossipScheduler --> CRDTStore
+    GossipScheduler --> CRDTMergeEngine
+
+    CRDTStore <|-- RocksDbCRDTStore
+    CRDTStore <|-- EtcdCRDTStore
+
+    RpcServer --> EddyEngine
+    RpcServer --> EddyGossipService
+    RpcClient --> BlsSigner
+    RpcClient --> RpcMetrics
+
+    EddyGossipService --> CRDTStore
+    EddyGossipService --> CRDTMergeEngine
+
+    SpironConfig --> EddyEngine
+    MetricsRegistry --> EnergyMetrics
+    MetricsRegistry --> RpcMetrics
+    MetricsRegistry --> ThroughputMetrics
+    MetricsRegistry --> StorageMetrics
+            </div>
+        </div>
+
+        <h2>Metrics Instrumentation Architecture <span class="metrics-badge">53+ Metrics</span></h2>
+        <div class="diagram">
+            <div class="mermaid">
+classDiagram
+    class EnergyMetrics
+    class RpcMetrics
+    class ThroughputMetrics
+    class StorageMetrics
+    class ConvergenceMetrics
+    class MetricsRegistry
+
+    class CRDTMergeEngine
+    class ApprovalCounter
+    class EddyEngine
+    class RpcClient
+    class RpcServer
+    class RocksDbCRDTStore
+
+    MetricsRegistry --> EnergyMetrics
+    MetricsRegistry --> RpcMetrics
+    MetricsRegistry --> ThroughputMetrics
+    MetricsRegistry --> StorageMetrics
+    MetricsRegistry --> ConvergenceMetrics
+
+    EnergyMetrics --> CRDTMergeEngine
+    EnergyMetrics --> ApprovalCounter
+    EnergyMetrics --> EddyEngine
+
+    RpcMetrics --> RpcClient
+    RpcMetrics --> RpcServer
+
+    ThroughputMetrics --> EddyEngine
+    StorageMetrics --> EddyEngine
+    StorageMetrics --> RocksDbCRDTStore
+            </div>
+        </div>
+
+        <h2>Storage Backend Architecture</h2>
+        <div class="diagram">
+            <div class="mermaid">
+classDiagram
+    class CRDTStore
+    class RocksDbCRDTStore
+    class EtcdCRDTStore
+    class SpironRaftLog
+    class SpironSnapshotStore
+    class StorageMetrics
+
+    CRDTStore <|-- RocksDbCRDTStore
+    CRDTStore <|-- EtcdCRDTStore
+
+    RocksDbCRDTStore --> StorageMetrics
+    SpironRaftLog --> StorageMetrics
+    SpironSnapshotStore --> StorageMetrics
+            </div>
+        </div>
+
+        <div class="note">
+            <h4>🔍 Key Architecture Insights</h4>
+            <ul>
+                <li><strong>Instrumentation:</strong> All CRDT operations (merge, ingest, commit, damping) are now tracked with metrics at the source</li>
+                <li><strong>Dual Storage:</strong> Solo mode uses RocksDB for high performance; Cluster mode uses etcd for distributed consistency</li>
+                <li><strong>Metrics Collection:</strong> 53+ Prometheus metrics across 6 categories (CRDT, RPC, Energy, Storage, Throughput, Convergence)</li>
+                <li><strong>Thread Safety:</strong> All core components use synchronized methods or concurrent collections</li>
+                <li><strong>Cryptography:</strong> BLS12-381 signatures for Byzantine fault tolerance</li>
+                <li><strong>Performance Profiles:</strong> Pre-tuned parameter sets (LOW_LATENCY, MIN_QUORUM, MAX_QUORUM, BALANCED)</li>
+                <li><strong>Background Services:</strong> MetricsUpdater runs every 5 seconds to update disk usage and throughput gauges</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                curve: 'basis',
+                useMaxWidth: true
+            },
+            themeVariables: {
+                primaryColor: '#3498db',
+                primaryTextColor: '#2c3e50',
+                primaryBorderColor: '#2980b9',
+                lineColor: '#34495e',
+                secondaryColor: '#95a5a6',
+                tertiaryColor: '#ecf0f1',
+                fontSize: '14px'
+            }
+        });
+    </script>
+</body>
+</html>

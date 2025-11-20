@@ -17,6 +17,19 @@ java {
 dependencies {
   implementation project(':')
   implementation "org.slf4j:slf4j-simple:${rootProject.ext.vers.slf4j}"
+  
+  // BLS crypto (needed for SpironCli)
+  implementation "io.consensys.tuweni:tuweni-crypto:${rootProject.ext.vers.tuweni}"
+  implementation "org.miracl.milagro.amcl:milagro-crypto-java:${rootProject.ext.vers.milagro}"
+  
+  // gRPC and Protobuf (needed for CRDT examples)
+  implementation "io.grpc:grpc-protobuf:${rootProject.ext.vers.grpc}"
+  implementation "com.google.protobuf:protobuf-java:${rootProject.ext.vers.protobuf}"
+  
+  // Performance metrics
+  implementation "io.micrometer:micrometer-core:${rootProject.ext.vers.micrometer}"
+  implementation "io.micrometer:micrometer-registry-prometheus:${rootProject.ext.vers.micrometer}"
+  
   testImplementation "org.junit.jupiter:junit-jupiter-api:${rootProject.ext.vers.junitJupiter}"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${rootProject.ext.vers.junitJupiter}"
   testImplementation "org.junit.platform:junit-platform-launcher:${rootProject.ext.vers.junitJupiter}"

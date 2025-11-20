@@ -1,0 +1,96 @@
+plugins {
+    id 'application'
+    id 'com.google.protobuf'
+    id 'com.gradleup.shadow'
+}
+
+group = rootProject.group
+version = rootProject.version
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.vers.java as int)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Depend on core library (root project) for shared API types
+    implementation project(':')
+
+    // gRPC (reuse root versions)
+    implementation "io.grpc:grpc-netty-shaded:${rootProject.ext.vers.grpc}"
+    implementation "io.grpc:grpc-protobuf:${rootProject.ext.vers.grpc}"
+    implementation "io.grpc:grpc-stub:${rootProject.ext.vers.grpc}"
+    implementation "io.grpc:grpc-services:${rootProject.ext.vers.grpc}"
+
+    // Protocol Buffers
+    implementation "com.google.protobuf:protobuf-java-util:${rootProject.ext.vers.protobuf}"
+
+    // Storage
+    implementation "org.rocksdb:rocksdbjni:${rootProject.ext.vers.rocksdb}"
+    implementation "io.etcd:jetcd-core:${rootProject.ext.vers.jetcd}"
+
+    // Cryptography
+    runtimeOnly "io.consensys.tuweni:tuweni-bytes:${rootProject.ext.vers.tuweni}"
+    implementation "io.consensys.tuweni:tuweni-crypto:${rootProject.ext.vers.tuweni}"
+    implementation "org.miracl.milagro.amcl:milagro-crypto-java:${rootProject.ext.vers.milagro}"
+
+    // Metrics
+    implementation "io.micrometer:micrometer-core:${rootProject.ext.vers.micrometer}"
+    implementation "io.micrometer:micrometer-registry-prometheus:${rootProject.ext.vers.micrometer}"
+
+    // Dependency Injection
+    implementation "com.google.dagger:dagger:${rootProject.ext.vers.dagger}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${rootProject.ext.vers.dagger}"
+
+    // Logging
+    implementation "org.slf4j:slf4j-simple:${rootProject.ext.vers.slf4j}"
+    compileOnly "javax.annotation:javax.annotation-api:${rootProject.ext.vers.javax}"
+
+    // JSON (keep Jackson local for server packaging)
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+
+    // Testing (reuse root test stack where possible)
+    testImplementation "org.junit.jupiter:junit-jupiter:${rootProject.ext.vers.junitJupiter}"
+    testImplementation "org.assertj:assertj-core:${rootProject.ext.vers.assertj}"
+    testImplementation "org.mockito:mockito-core:${rootProject.ext.vers.mockito}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${rootProject.ext.vers.mockito}"
+    testImplementation "org.awaitility:awaitility:${rootProject.ext.vers.awaitility}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${rootProject.ext.vers.junitJupiter}"
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${rootProject.ext.vers.protobuf}"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${rootProject.ext.vers.grpc}"
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                grpc {}
+            }
+        }
+    }
+}
+
+application {
+    mainClass = 'com.spiron.App'
+}
+
+shadowJar {
+    archiveBaseName.set('spiron-server')
+    archiveVersion.set('')
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer)
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}

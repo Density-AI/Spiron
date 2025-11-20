@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiron Consensus Engine - Data Flow Sequence Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+        }
+        .diagram {
+            margin: 20px 0;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 4px;
+        }
+        .description {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        .description h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .flow-summary {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Spiron Consensus Engine - Data Flow Sequence Diagrams</h1>
+        <p><strong>Generated:</strong> November 19, 2025</p>
+        <p>Comprehensive sequence diagrams showing data flow through the Spiron consensus system for all major operations.</p>
+
+        <h2>1. Eddy Broadcast Flow</h2>
+        <div class="description">
+            <h3>Description</h3>
+            <p>Shows how an eddy (consensus proposal) flows from creation through network broadcast, ingestion, energy merging, and potential commitment.</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    participant Client
+    participant RpcClient
+    participant Network
+    participant RpcServer
+    participant EddyEngine
+    participant EddyMath
+    participant RaftLog
+    participant SnapshotStore
+
+    Client->>RpcClient: broadcast(eddyState)
+    RpcClient->>RpcClient: Sign with BLS
+    
+    loop For each peer
+        RpcClient->>Network: gRPC Broadcast RPC
+        Network->>RpcServer: EddyStateMsg
+        RpcServer->>EddyEngine: ingest(eddyState)
+        
+        EddyEngine->>EddyEngine: Get existing eddy
+        alt Eddy exists
+            EddyEngine->>EddyMath: angularSimilarity(v1, v2)
+            EddyMath-->>EddyEngine: similarity score
+            
+            alt similarity > threshold
+                EddyEngine->>EddyMath: siphon(e1, e2, sim, factor)
+                EddyMath-->>EddyEngine: merged energy
+                EddyEngine->>EddyEngine: Create merged eddy
+            else similarity ≤ threshold
+                EddyEngine->>EddyEngine: Damp energy (e * alpha)
+            end
+        else New eddy
+            EddyEngine->>EddyEngine: Store new eddy
+        end
+        
+        EddyEngine->>EddyEngine: Check if energy ≥ commitEnergy
+        
+        alt Energy ≥ commitEnergy
+            EddyEngine->>RaftLog: append("commit:id,energy")
+            EddyEngine->>SnapshotStore: save(eddyState)
+            EddyEngine->>RpcClient: commit(dominantEddy)
+        end
+        
+        RpcServer-->>Network: Ack
+        Network-->>RpcClient: Ack
+    end
+    
+    RpcClient-->>Client: Broadcast complete
+            </div>
+        </div>
+
+        <h2>2. CRDT Gossip Sync Flow</h2>
+        <div class="description">
+            <h3>Description</h3>
+            <p>Demonstrates the CRDT-based gossip protocol for distributed state synchronization between cluster nodes.</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    participant NodeA
+    participant RpcClient
+    participant Network
+    participant EddyGossipService
+    participant CRDTStore
+    participant CRDTMergeEngine
+    participant CRDTJsonCodec
+    participant NodeB_Storage
+
+    NodeA->>RpcClient: syncGossip(localState)
+    RpcClient->>CRDTJsonCodec: serialize(eddyMap)
+    CRDTJsonCodec-->>RpcClient: JSON state
+    
+    RpcClient->>Network: gRPC Sync RPC
+    Network->>EddyGossipService: SyncRequest
+    
+    loop For each remote eddy
+        EddyGossipService->>CRDTStore: get(eddyId)
+        CRDTStore-->>EddyGossipService: local state (or empty)
+        
+        alt Local state exists
+            EddyGossipService->>CRDTJsonCodec: deserialize(localJson)
+            CRDTJsonCodec-->>EddyGossipService: localEddy
+            
+            EddyGossipService->>CRDTMergeEngine: merge(localEddy, remoteEddy)
+            Note over CRDTMergeEngine: LWW merge logic:<br/>- Compare timestamps<br/>- Merge approvals<br/>- Select winner
+            CRDTMergeEngine-->>EddyGossipService: mergedEddy
+        else No local state
+            EddyGossipService->>EddyGossipService: Use remote eddy
+        end
+        
+        EddyGossipService->>CRDTJsonCodec: serialize(mergedEddy)
+        CRDTJsonCodec-->>EddyGossipService: JSON
+        EddyGossipService->>CRDTStore: put(eddyId, mergedJson)
+        
+        alt Storage mode = solo
+            CRDTStore->>NodeB_Storage: RocksDB put(key, value)
+        else Storage mode = cluster
+            CRDTStore->>NodeB_Storage: etcd put(key, value)
+        end
+    end
+    
+    EddyGossipService->>CRDTStore: getAll()
+    CRDTStore-->>EddyGossipService: All local eddies
+    EddyGossipService-->>Network: SyncResponse(localState)
+    Network-->>RpcClient: Response
+    
+    RpcClient->>CRDTMergeEngine: merge(local, response)
+    RpcClient->>NodeA: Update local state
+            </div>
+        </div>
+
+        <h2>3. Commit with BLS Signature Flow</h2>
+        <div class="description">
+            <h3>Description</h3>
+            <p>Shows the cryptographically signed commit flow using BLS signatures for Byzantine fault tolerance.</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    participant Engine
+    participant RpcClient
+    participant BlsSigner
+    participant Network
+    participant RpcServer
+    participant RemoteEngine
+    participant RaftLog
+    participant SnapshotStore
+
+    Engine->>Engine: Dominant eddy energy ≥ threshold
+    Engine->>RpcClient: commit(dominantEddy)
+    
+    RpcClient->>BlsSigner: sign(eddyBytes)
+    BlsSigner->>BlsSigner: Generate BLS signature
+    BlsSigner-->>RpcClient: signature
+    
+    RpcClient->>BlsSigner: publicKey()
+    BlsSigner-->>RpcClient: publicKey
+    
+    RpcClient->>RpcClient: Build CommitEnvelope:<br/>- body (eddy data)<br/>- blsSignature<br/>- blsPubkey<br/>- sigScheme
+    
+    loop For each peer
+        RpcClient->>Network: gRPC Commit RPC
+        Network->>RpcServer: CommitEnvelope
+        
+        RpcServer->>RpcServer: Extract signature components
+        RpcServer->>BlsSigner: verifyAggregate([pubkey], [msg], sig)
+        BlsSigner->>BlsSigner: Verify BLS12-381 signature
+        BlsSigner-->>RpcServer: valid/invalid
+        
+        alt Signature valid
+            RpcServer->>RemoteEngine: persistState(eddyState)
+            RemoteEngine->>RaftLog: append("commit:id,energy")
+            RaftLog-->>RemoteEngine: Written
+            RemoteEngine->>SnapshotStore: save(eddyState)
+            SnapshotStore-->>RemoteEngine: Saved
+            RemoteEngine->>RemoteEngine: Update in-memory state
+            
+            RpcServer-->>Network: Ack(status: committed)
+        else Signature invalid
+            RpcServer-->>Network: Ack(status: invalid-signature)
+        end
+        
+        Network-->>RpcClient: Response
+    end
+    
+    RpcClient-->>Engine: Commit broadcast complete
+            </div>
+        </div>
+
+        <h2>4. Storage Backend Selection Flow</h2>
+        <div class="description">
+            <h3>Description</h3>
+            <p>Illustrates how the storage backend is selected and initialized based on configuration (solo vs cluster mode).</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    participant App
+    participant SpironConfig
+    participant SpironModule
+    participant CRDTStore
+    participant RocksDB
+    participant etcd
+
+    App->>SpironConfig: load()
+    SpironConfig->>SpironConfig: Read application.properties
+    SpironConfig->>SpironConfig: Apply performance profile
+    SpironConfig-->>App: Config object
+    
+    App->>SpironModule: provideCRDTStore(config)
+    SpironModule->>SpironConfig: storageMode()
+    SpironConfig-->>SpironModule: "solo" or "cluster"
+    
+    alt storageMode = "solo"
+        SpironModule->>RocksDB: new RocksDbCRDTStore(dataDir)
+        RocksDB->>RocksDB: RocksDB.loadLibrary()
+        RocksDB->>RocksDB: Open DB with options:<br/>- Create if missing<br/>- LZ4 compression<br/>- 4 background jobs
+        RocksDB-->>SpironModule: RocksDbCRDTStore
+        SpironModule-->>App: CRDTStore (RocksDB)
+        
+    else storageMode = "cluster"
+        SpironModule->>etcd: new EtcdCRDTStore(endpoints)
+        etcd->>etcd: Client.builder()<br/>.endpoints(urls)<br/>.build()
+        etcd->>etcd: Get KV client
+        etcd-->>SpironModule: EtcdCRDTStore
+        SpironModule-->>App: CRDTStore (etcd)
+    end
+    
+    App->>SpironModule: provideLog(config)
+    SpironModule->>SpironModule: new SpironRaftLog(dataDir)
+    SpironModule-->>App: SpironRaftLog
+    
+    App->>SpironModule: provideSnapshots(config)
+    SpironModule->>SpironModule: new SpironSnapshotStore(dataDir)
+    SpironModule-->>App: SpironSnapshotStore
+            </div>
+        </div>
+
+        <h2>5. Performance Profile Application Flow</h2>
+        <div class="description">
+            <h3>Description</h3>
+            <p>Shows how performance profiles (LOW_LATENCY, MIN_QUORUM, MAX_QUORUM, BALANCED) are applied to configure consensus parameters.</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Config
+    participant Profile
+    participant Engine
+    participant RpcServer
+    participant RpcClient
+
+    User->>Config: Set profile = LOW_LATENCY
+    Config->>Config: applyProfile(LOW_LATENCY)
+    
+    Config->>Profile: Get profile parameters
+    Profile-->>Config: alpha=0.98<br/>siphonFactor=0.3<br/>angularThreshold=0.85<br/>commitEnergy=2.0<br/>maxPeers=3
+    
+    Config->>Config: Override current values
+    Config-->>User: Config updated
+    
+    User->>Engine: Create with config
+    Config->>Engine: dampingAlpha() = 0.98
+    Config->>Engine: siphonFactor() = 0.3
+    Config->>Engine: angularThreshold() = 0.85
+    Config->>Engine: commitEnergy() = 2.0
+    Engine->>Engine: Initialize with parameters
+    
+    User->>RpcServer: Create server
+    Config->>RpcServer: port() = 8080
+    RpcServer->>RpcServer: Bind to port
+    
+    User->>RpcClient: Create client
+    Config->>RpcClient: peers() = [node1, node2, node3]
+    Config->>RpcClient: rpcWorkerThreads() = 4
+    RpcClient->>RpcClient: Initialize with 3 peers
+    
+    Note over Config,RpcClient: Profile ensures:<br/>- Fast convergence (high alpha)<br/>- Small quorum (3 peers)<br/>- Lower commit threshold
+            </div>
+        </div>
+
+        <h2>6. Metrics Collection Flow</h2>
+        <div class="description">
+            <h3>Description</h3>
+            <p>Demonstrates how performance metrics are collected and exposed via Prometheus.</p>
+        </div>
+        <div class="diagram">
+            <div class="mermaid">
+sequenceDiagram
+    participant Operation
+    participant RpcMetrics
+    participant EnergyMetrics
+    participant PerformanceMetrics
+    participant MetricsRegistry
+    participant Prometheus
+
+    Operation->>RpcMetrics: incBroadcast(peer)
+    RpcMetrics->>MetricsRegistry: Counter.increment()
+    
+    Operation->>EnergyMetrics: recordEnergy(eddyId, energy)
+    EnergyMetrics->>MetricsRegistry: Gauge.set(energy)
+    
+    Operation->>PerformanceMetrics: recordEddy(id, energy, latencyNs)
+    PerformanceMetrics->>PerformanceMetrics: Add to metrics list
+    PerformanceMetrics->>PerformanceMetrics: Calculate statistics
+    
+    loop Prometheus scrape (periodic)
+        Prometheus->>MetricsRegistry: HTTP GET /metrics
+        MetricsRegistry->>MetricsRegistry: Collect all metrics
+        MetricsRegistry-->>Prometheus: Prometheus format:<br/>spiron_broadcast_total<br/>spiron_commit_total<br/>spiron_eddy_energy<br/>spiron_latency_avg
+    end
+    
+    Operation->>PerformanceMetrics: snapshot()
+    PerformanceMetrics->>PerformanceMetrics: Calculate:<br/>- Average latency<br/>- P50, P95, P99<br/>- Throughput<br/>- Memory usage
+    PerformanceMetrics-->>Operation: MetricsSnapshot
+            </div>
+        </div>
+
+        <div class="flow-summary">
+            <h3>📊 Flow Summary</h3>
+            <ul>
+                <li><strong>Eddy Broadcast:</strong> Client → RpcClient → Network → RpcServer → EddyEngine → Storage</li>
+                <li><strong>CRDT Gossip:</strong> Node A ⇄ CRDT Merge ⇄ Node B (bidirectional sync)</li>
+                <li><strong>Commit Flow:</strong> Engine → BLS Sign → Broadcast → Verify → Persist</li>
+                <li><strong>Storage Selection:</strong> Config → Solo (RocksDB) OR Cluster (etcd)</li>
+                <li><strong>Profile Application:</strong> User selects profile → Parameters applied across all components</li>
+                <li><strong>Metrics:</strong> Operations → Collectors → Registry → Prometheus</li>
+            </ul>
+        </div>
+
+        <h2>Component Interactions Summary</h2>
+        <div class="diagram">
+            <div class="mermaid">
+graph TB
+    subgraph Client Layer
+        CLI[CLI/Client]
+    end
+    
+    subgraph Network Layer
+        RpcClient[RpcClient]
+        RpcServer[RpcServer]
+        Gossip[EddyGossipService]
+    end
+    
+    subgraph Core Layer
+        Engine[EddyEngine]
+        Math[EddyMath]
+        BLS[BlsSigner]
+    end
+    
+    subgraph Storage Layer
+        CRDT[CRDTStore]
+        Raft[SpironRaftLog]
+        Snap[SpironSnapshotStore]
+    end
+    
+    subgraph Backend
+        Rocks[(RocksDB)]
+        Etcd[(etcd)]
+    end
+    
+    CLI -->|broadcast| RpcClient
+    RpcClient -->|gRPC| RpcServer
+    RpcServer -->|ingest| Engine
+    RpcServer -->|sync| Gossip
+    
+    Engine -->|uses| Math
+    Engine -->|persist| Raft
+    Engine -->|snapshot| Snap
+    
+    RpcClient -->|sign| BLS
+    RpcServer -->|verify| BLS
+    
+    Gossip -->|read/write| CRDT
+    CRDT -.->|solo mode| Rocks
+    CRDT -.->|cluster mode| Etcd
+    
+    style CLI fill:#3498db,stroke:#2980b9,color:#fff
+    style Engine fill:#e74c3c,stroke:#c0392b,color:#fff
+    style CRDT fill:#2ecc71,stroke:#27ae60,color:#fff
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            sequence: {
+                actorMargin: 50,
+                width: 150,
+                height: 45,
+                boxMargin: 10
+            },
+            themeVariables: {
+                primaryColor: '#3498db',
+                primaryTextColor: '#2c3e50',
+                primaryBorderColor: '#2980b9',
+                lineColor: '#34495e',
+                secondaryColor: '#95a5a6',
+                tertiaryColor: '#ecf0f1'
+            }
+        });
+    </script>
+</body>
+</html>
